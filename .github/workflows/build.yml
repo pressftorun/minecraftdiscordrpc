@@ -1,0 +1,38 @@
+name: Build and test all versions
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ref: main
+            java: '25'
+          - ref: fabric-26.3
+            java: '25'
+          - ref: fabric-1.21.11
+            java: '21'
+    name: ${{ matrix.ref }} / Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.ref }}
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - name: Build and run text, config and Windows IPC tests
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .tools/tmp | Out-Null
+          $env:JAVA_TOOL_OPTIONS = "-Djdk.net.unixdomain.tmpdir=$((Resolve-Path .tools/tmp).Path)"
+          .\gradlew.bat build --no-daemon --console=plain
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

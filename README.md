@@ -34,7 +34,27 @@
 без биома, игровых показателей и таймера мира. Меню паузы внутри мира
 сохраняет игровой статус.
 
-## Установка
+## Версии и загрузка
+
+Мод работает на Windows, только на клиенте. Выберите **один** JAR под свою версию игры и загрузчик.
+
+| Minecraft | Загрузчик | Мод | Java | Скачать JAR | Исходники |
+| --- | --- | --- | --- | --- | --- |
+| 26.3 | NeoForge 26.3.0.90+ | 1.5.3 | 25 | [Скачать](https://github.com/pressftorun/minecraftdiscordrpc/raw/refs/heads/main/dist/world-presence-1.5.3%2B26.3-neoforge.jar) | [main](https://github.com/pressftorun/minecraftdiscordrpc/tree/main) |
+| 26.3 | Fabric Loader 0.19.5+ | 1.5.1 | 25 | [Скачать](https://github.com/pressftorun/minecraftdiscordrpc/raw/refs/heads/main/dist/world-presence-1.5.1%2B26.3-fabric.jar) | [fabric-26.3](https://github.com/pressftorun/minecraftdiscordrpc/tree/fabric-26.3) |
+| 1.21.11 | Fabric Loader 0.19.5+ | 1.5.2 | 21 | [Скачать](https://github.com/pressftorun/minecraftdiscordrpc/raw/refs/heads/main/dist/world-presence-1.5.2%2B1.21.11-fabric.jar) | [fabric-1.21.11](https://github.com/pressftorun/minecraftdiscordrpc/tree/fabric-1.21.11) |
+
+Для Fabric также установите Fabric API: **0.162.0+26.3** или **0.141.6+1.21.11** соответственно.
+Экран настроек Fabric доступен через Mod Menu: **21.0.0** для 26.3, **17.0.1** для 1.21.11.
+NeoForge имеет встроенный экран настроек; Fabric API и Mod Menu ему не нужны.
+
+Положите JAR в `mods`, удалив другую версию этого мода. Исходники ZIP устанавливать в игру не нужно.
+Инструкции в каждой ветке относятся к её версии. [Контрольные суммы SHA-256](https://github.com/pressftorun/minecraftdiscordrpc/blob/main/dist/SHA256SUMS).
+
+Application ID Discord — публичный идентификатор. Токены и Client Secret для этого мода не нужны.
+RPC показывает адрес сервера людям, которые видят вашу активность Discord.
+
+## Установка NeoForge 26.3
 
 1. Установить NeoForge **26.3.0.90+** для Minecraft **26.3**. Для игры нужна Java **25**.
 2. Заменить старый JAR мода на `world-presence-1.5.3+26.3-neoforge.jar` из `build/libs`

@@ -1,0 +1,41 @@
+name: Publish verified JARs
+on:
+  push:
+    branches: [main]
+    paths: ['dist/**', '.github/workflows/releases.yml', 'docs/releases/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publish-releases
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify published binary hashes
+        working-directory: dist
+        run: sha256sum --check SHA256SUMS
+      - name: Publish versioned releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish() {
+            local tag="$1" jar="$2" ref="$3" title="$4" notes="$5" latest="$6"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "Release $tag already exists; leaving it unchanged."
+            else
+              gh release create "$tag" "dist/$jar" dist/SHA256SUMS \
+                --target "$ref" --title "$title" --notes-file "$notes" --latest="$latest"
+            fi
+          }
+          publish 'v1.5.1+26.3-fabric' 'world-presence-1.5.1+26.3-fabric.jar' 'fabric-26.3' 'World Presence 1.5.1 — Fabric / Minecraft 26.3' 'docs/releases/fabric-26.3.md' false
+          publish 'v1.5.2+1.21.11-fabric' 'world-presence-1.5.2+1.21.11-fabric.jar' 'fabric-1.21.11' 'World Presence 1.5.2 — Fabric / Minecraft 1.21.11' 'docs/releases/fabric-1.21.11.md' false
+          publish 'v1.5.3+26.3-neoforge' 'world-presence-1.5.3+26.3-neoforge.jar' "$GITHUB_SHA" 'World Presence 1.5.3 — NeoForge / Minecraft 26.3' 'docs/releases/neoforge-26.3.md' true
