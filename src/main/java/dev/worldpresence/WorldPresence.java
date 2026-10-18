@@ -3,16 +3,11 @@ package dev.worldpresence;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.GameShuttingDownEvent;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,19 +18,18 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.io.IOException;
 import java.time.Instant;
 
-@Mod(value = "world_presence", dist = Dist.CLIENT)
-public final class WorldPresence {
+public final class WorldPresence implements ClientModInitializer {
     static final Logger LOG = LoggerFactory.getLogger("world_presence");
     static WorldPresence instance;
-    private final Path path = FMLPaths.CONFIGDIR.get().resolve("world-presence.json");
+    private final Path path = FabricLoader.getInstance().getConfigDir().resolve("world-presence.json");
     private Config config = new Config();
     private DiscordIpc rpc;
     private long started;
     private long nextUpdate;
 
-    public WorldPresence(ModContainer container) {
+    @Override
+    public void onInitializeClient() {
         instance = this;
-        container.registerExtensionPoint(IConfigScreenFactory.class, (mod, parent) -> new ConfigScreen(parent));
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             if (!Files.exists(path)) {
@@ -43,28 +37,27 @@ public final class WorldPresence {
             }
             Config loaded = gson.fromJson(Files.readString(path), Config.class);
             if (loaded != null && PresenceText.validApplicationId(loaded.applicationId)) config = loaded;
-            else LOG.warn("Некорректный ID приложения в {}. Укажите ID через меню модов", path);
+            else LOG.warn("Некорректный ID приложения в {}. Укажите ID через Mod Menu", path);
         } catch (Exception e) {
-            LOG.error("Не удалось прочитать конфиг {}. Укажите ID через меню модов", path, e);
+            LOG.error("Не удалось прочитать конфиг {}. Укажите ID через Mod Menu", path, e);
         }
         restartRpc();
-        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingIn event) -> {
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             started = Instant.now().getEpochSecond();
             nextUpdate = 0;
         });
-        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             started = 0;
             nextUpdate = 0;
-            if (rpc != null) rpc.setActivity(PresenceText.menuActivity(Minecraft.getInstance().getUser().getName()));
+            if (rpc != null) rpc.setActivity(PresenceText.menuActivity(client.getUser().getName()));
         });
-        NeoForge.EVENT_BUS.addListener((GameShuttingDownEvent event) -> {
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             if (rpc != null) rpc.close();
         });
-        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
-            var client = Minecraft.getInstance();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (rpc == null) return;
             boolean inWorld = client.player != null && client.level != null;
-            // Login/logout own the timer. Respawn and dimension loading are not new sessions.
+            // JOIN/DISCONNECT own the timer. Respawn and dimension loading are not new sessions.
             if (started != 0 && !inWorld) return;
             long now = System.nanoTime();
             if (now < nextUpdate) return;
@@ -85,7 +78,7 @@ public final class WorldPresence {
             String dimensionName = VanillaNames.dimension(client.level.dimension().identifier().toString());
             JsonObject activity = PresenceText.baseActivity();
             activity.addProperty("details", PresenceText.details(client.player.getGameProfile().name(), location));
-            activity.addProperty("state", PresenceText.stats(biomeName, dimensionName, client.level.getOverworldClockTime()));
+            activity.addProperty("state", PresenceText.stats(biomeName, dimensionName, client.level.getDayTime()));
             JsonObject timestamps = new JsonObject();
             timestamps.addProperty("start", started);
             activity.add("timestamps", timestamps);

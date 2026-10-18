@@ -1,6 +1,6 @@
 package dev.worldpresence;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -77,13 +77,13 @@ final class ConfigScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(graphics, mouseX, mouseY, delta);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        super.render(graphics, mouseX, mouseY, delta);
         int top = height / 2 - 30;
-        graphics.centeredText(font, title, width / 2, top - 46, 0xFFFFFFFF);
-        graphics.centeredText(font, "ID приложения Discord", width / 2, top - 14, 0xFFFFFFFF);
-        graphics.centeredText(font, "Пустое поле отключает RPC", width / 2, top + 28, 0xFFAAAAAA);
-        graphics.centeredText(font, "Применяется без перезапуска игры", width / 2, top + 40, 0xFFAAAAAA);
+        graphics.drawCenteredString(font, title, width / 2, top - 46, 0xFFFFFFFF);
+        graphics.drawCenteredString(font, "ID приложения Discord", width / 2, top - 14, 0xFFFFFFFF);
+        graphics.drawCenteredString(font, "Пустое поле отключает RPC", width / 2, top + 28, 0xFFAAAAAA);
+        graphics.drawCenteredString(font, "Применяется без перезапуска игры", width / 2, top + 40, 0xFFAAAAAA);
         String status = error;
         int color = 0xFFFF5555;
         if (status.isEmpty() && check != null) {
@@ -91,14 +91,14 @@ final class ConfigScreen extends Screen {
             status = result == null ? "Проверка подключения к Discord..." : result.message();
             color = result == null ? 0xFFAAAAAA : result.successful() ? 0xFF55FF55 : 0xFFFF5555;
         }
-        if (!status.isEmpty()) graphics.centeredText(font,
+        if (!status.isEmpty()) graphics.drawCenteredString(font,
                 font.plainSubstrByWidth(status, width - 20), width / 2, top + 116, color);
     }
 
     @Override
     public void onClose() {
         cancelCheck();
-        minecraft.setScreenAndShow(parent);
+        minecraft.setScreen(parent);
     }
 
     @Override

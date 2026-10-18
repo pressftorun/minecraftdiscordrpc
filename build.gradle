@@ -1,40 +1,40 @@
 plugins {
-    id 'net.neoforged.moddev' version '2.0.148'
+    id 'net.fabricmc.fabric-loom-remap' version '1.17.1'
 }
 
 group = 'dev.worldpresence'
-version = '1.5.3+26.3-neoforge'
+version = '1.5.2+1.21.11'
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
 repositories {
     mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.terraformersmc.com/releases/' }
+        }
+        filter { includeGroup 'com.terraformersmc' }
+    }
 }
 
-neoForge {
-    version = '26.3.0.90'
-    addModdingDependenciesTo sourceSets.test
-    runs {
-        client {
-            client()
-            gameDirectory = project.file('.tools/run-26.3-neoforge')
-        }
-    }
-    mods {
-        world_presence { sourceSet sourceSets.main }
-    }
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.11'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.19.5'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11'
+    modCompileOnly('com.terraformersmc:modmenu:17.0.1') { transitive = false }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.release = 25
+    options.release = 21
     options.encoding = 'UTF-8'
 }
 
 processResources {
     inputs.property 'version', project.version
-    filesMatching('META-INF/neoforge.mods.toml') { expand version: project.version }
+    filesMatching('fabric.mod.json') { expand version: project.version }
 }
 
 tasks.register('selfTest', JavaExec) {
