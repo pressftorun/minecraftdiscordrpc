@@ -1,4 +1,4 @@
-param([string]$PipeName)
+﻿param([string]$PipeName)
 $ErrorActionPreference = 'Stop'
 $Mode = if ($args.Count -gt 0) { $args[0] } else { 'activity' }
 function Open-Pipe {
