@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "world_presence",
+  "version": "${version}",
+  "name": "Присутствие в мире",
+  "icon": "assets/world_presence/icon.png",
+  "description": "Статус Discord: ник, сервер, биом, измерение и время в мире.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.worldpresence.WorldPresence"],
+    "modmenu": ["dev.worldpresence.ModMenuIntegration"]
+  },
+  "suggests": { "modmenu": ">=21.0.0" },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
