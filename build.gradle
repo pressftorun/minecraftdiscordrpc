@@ -1,0 +1,48 @@
+plugins {
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+group = 'dev.worldpresence'
+version = '1.5.3+26.3-neoforge'
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+repositories {
+    mavenCentral()
+}
+
+neoForge {
+    version = '26.3.0.90'
+    addModdingDependenciesTo sourceSets.test
+    runs {
+        client {
+            client()
+            gameDirectory = project.file('.tools/run-26.3-neoforge')
+        }
+    }
+    mods {
+        world_presence { sourceSet sourceSets.main }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') { expand version: project.version }
+}
+
+tasks.register('selfTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.worldpresence.PresenceTextTest'
+    enableAssertions = true
+}
+check.dependsOn selfTest
+// Checks use the runnable selfTest above, without a test framework.
+test { failOnNoDiscoveredTests = false }
